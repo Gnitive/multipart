@@ -5,7 +5,7 @@
 //! * `DefaultProcessor` - buferize all incoming data, convert data to any simple type
 
 
-use std::convert::{TryFrom, Infallible};
+use std::convert::{TryFrom};
 use std::str::{FromStr, ParseBoolError};
 use std::num::{ParseIntError, ParseFloatError};
 use std::string::{FromUtf8Error};
@@ -122,7 +122,7 @@ impl ProcessContent for DefaultProcessor
 /* -------- Vec<u8>  -------- */
 impl <'a>TryFrom<&'a DefaultProcessor> for Vec<u8>
 {
-    type Error = Infallible;
+    type Error = !;
 
     fn try_from(default_processor: &DefaultProcessor) -> Result<Self, Self::Error>
     {
@@ -133,7 +133,7 @@ impl <'a>TryFrom<&'a DefaultProcessor> for Vec<u8>
 
 impl TryFrom<DefaultProcessor> for Vec<u8>
 {
-    type Error = Infallible;
+    type Error = !;
 
     fn try_from(default_processor: DefaultProcessor) -> Result<Self, Self::Error>
     {
@@ -144,7 +144,7 @@ impl TryFrom<DefaultProcessor> for Vec<u8>
 
 impl <'a>TryFrom<&'a DefaultProcessor> for Option<Vec<u8>>
 {
-    type Error = Infallible;
+    type Error = !;
 
     fn try_from(default_processor: &DefaultProcessor) -> Result<Self, Self::Error>
     {
@@ -155,7 +155,7 @@ impl <'a>TryFrom<&'a DefaultProcessor> for Option<Vec<u8>>
 
 impl TryFrom<DefaultProcessor> for Option<Vec<u8>>
 {
-    type Error = Infallible;
+    type Error = !;
 
     fn try_from(default_processor: DefaultProcessor) -> Result<Self, Self::Error>
     {

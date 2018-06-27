@@ -6,6 +6,7 @@
 
 #![feature(vec_remove_item)]
 #![feature(try_from)]
+#![feature(never_type)]
 
 pub mod gnitive_multipart
 {
@@ -113,7 +114,7 @@ pub mod gnitive_multipart
         ///
         /// * `_self_` - workaround for generated `ProcessContent`
         /// * `_headers` - all headers for current field
-        fn content_parser(&self, _self_: &Rc<RefCell<Self>>, _headers: &Headers) -> Option<Box<ProcessContent>> { None }
+        fn content_parser(&mut self, _self_: &Rc<RefCell<Self>>, _headers: &Headers) -> Option<Rc<RefCell<ProcessContent>>> { None }
 
 
         /// Error handling.
@@ -127,14 +128,14 @@ pub mod gnitive_multipart
         fn error(&mut self, _error: &MultipartParseError) -> Result<OnError, IOError> { Ok(OnError::ContinueWithoutError) }
 
         /// Finish of all data, no `content_parser` or `error` will be called.
-        fn finish(&mut self);
+        fn finish(&mut self) -> () {}
     }
 
     /// This trait implements in `gnitive-multipart-derive` crate
     pub trait MultipartParserTargetGenerated
     {
         fn get_all_required(&self) -> Vec<String>;
-        fn content_parser_generated(&self, self_: &Rc<RefCell<Self>>, headers: &Headers) -> Option<Box<ProcessContent>>;
+        fn content_parser_generated(&mut self, self_: &Rc<RefCell<Self>>, headers: &Headers) -> Option<Rc<RefCell<ProcessContent>>>;
     }
 
 
@@ -195,4 +196,4 @@ mod boundary_builder;
 mod header;
 pub mod multipart_parser;
 pub mod process_content;
-mod to_multipart_parse_error;
+pub mod to_multipart_parse_error;

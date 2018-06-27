@@ -1,0 +1,23 @@
+[package]
+name = "gnitive-multipart-derive"
+version = "0.2.0"
+authors = ["gnitive"]
+
+[lib]
+name = "gnitive_multipart_derive"
+proc-macro = true
+
+[dependencies.quote]
+version = "*"
+
+
+[dependencies.syn]
+version = "*"
+features = ["parsing", "proc-macro"]
+
+
+[dependencies.proc-macro2]
+version = "*"
+default-features = false
+features = ["nightly"]
+

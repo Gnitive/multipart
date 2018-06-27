@@ -1,12 +1,11 @@
 //! Convert internal Rust parsing error (like `ParseIntError`) to `MultipartParseError`
 
 use ::gnitive_multipart::{MultipartParseError, ToMultipartParseError};
-use std::convert::{Infallible};
 use std::string::{FromUtf8Error};
 use std::str::{ParseBoolError};
 use std::num::{ParseIntError, ParseFloatError};
 
-impl <'a>ToMultipartParseError<'a> for Infallible
+impl <'a>ToMultipartParseError<'a> for !
 {
     fn to_multipart_parse_error(&'a self, _name: String, _raw_data: &'a Vec<u8>) -> MultipartParseError
     {

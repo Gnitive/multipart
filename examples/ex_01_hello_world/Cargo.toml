@@ -1,0 +1,17 @@
+[package]
+name = "ex_01_hello_world"
+version = "0.0.0"
+authors = ["Gnitive", "Sphinkx <Vladimir.Chujkov@gmail.com>"]
+publish = false
+
+[dependencies]
+gnitive-multipart-derive = { path = "../../derive" }
+gnitive-multipart        = { path = "../../lib" }
+
+[profile.dev]
+opt-level = 0
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1

@@ -76,7 +76,7 @@ pub struct MultipartParser<T: MultipartParserTarget + MultipartParserTargetGener
     headers_builder: HeadersBuilder,
 
     /// Current data processor
-    process_content: Option<Box<ProcessContent>>,
+    process_content: Option<Rc<RefCell<ProcessContent>>>,
 
     compare_pos: usize,
     content_start: usize,
@@ -121,22 +121,26 @@ impl <T>Write for MultipartParser<T>
                         MultipartParserState::Finished => ()
                     };
             }
+
+        if self.state == MultipartParserState::Content
+            {
+                let from = self.content_start.clone();
+                let to = self.buf_pos.clone() + 1;
+                if let Some(ref  process_content) = self.process_content
+                    {
+                        let process_content =process_content.borrow();
+                        let params = process_content.get_process_params();
+
+                        println!("{} from {} to  {}", &params.name, &from, &to);
+
+                    }
+                self.processor_write_from_to(buf, from, to)?;
+            }
         Ok(buf.len())
     }
 
     fn flush(&mut self) -> Result<(), Error>
     {
-        if !self.unprocessed.is_empty()
-            {
-                // All data processed - result of `error` can be ignored.
-                match self.target.borrow_mut().error( &MultipartParseError::RequiredMissing(&self.unprocessed) )
-                    {
-                        Ok(_) => (),
-                        Err(_) => ()
-                    }
-            }
-
-        self.target.borrow_mut().finish();
         Ok(())
     }
 }
@@ -237,7 +241,7 @@ impl <T>MultipartParser<T>
     /// Change internal state to `Content`
     fn to_content(&mut self) -> ()
     {
-        self.content_start = self.buf_pos;
+        self.content_start = self.buf_pos+1;
         self.content_size = 0;
         self.on_error = OnError::ContinueWithError;
         self.error_fired = false;
@@ -246,12 +250,12 @@ impl <T>MultipartParser<T>
         let headers = self.headers_builder.build();
 
         {
-            let target = self.target.borrow();
-            self.process_content = target.content_parser_generated(&self.target, &headers);
+            let mut target = self.target.borrow_mut();
+            self.process_content = target.content_parser_generated(&self.target.clone(), &headers);
 
             self.content_size_max = match &self.process_content
                 {
-                    &Some(ref process_content) => process_content.get_process_params().max_size.clone(),
+                    &Some(ref process_content) => process_content.borrow().get_process_params().max_size.clone(),
                     &None => None
                 };
 
@@ -283,6 +287,17 @@ impl <T>MultipartParser<T>
     /// Change internal state to `Finished`
     fn to_finished(&mut self) -> ()
     {
+        if !self.unprocessed.is_empty()
+            {
+                // All data processed - result of `error` can be ignored.
+                match self.target.borrow_mut().error( &MultipartParseError::RequiredMissing(&self.unprocessed) )
+                    {
+                        Ok(_) => (),
+                        Err(_) => ()
+                    }
+            }
+        self.target.borrow_mut().finish();
+
         self.state = MultipartParserState::Finished;
     }
 
@@ -498,7 +513,7 @@ impl <T>MultipartParser<T>
             {
                 if let Some(ref headers ) = self.headers
                     {
-                        process_content.open(headers);
+                        process_content.borrow_mut().open(headers);
                     }
 
             }
@@ -518,6 +533,7 @@ impl <T>MultipartParser<T>
     {
         if self.on_error == OnError::Skip
             {
+
                 return Ok(());
             }
 
@@ -535,7 +551,9 @@ impl <T>MultipartParser<T>
                                         OnError::ContinueWithoutError => (),
                                         OnError::ContinueWithError =>
                                             {
-                                                let name = &process_content.get_process_params().name;
+                                                let tmp = process_content.borrow();
+                                                let process_params = tmp.get_process_params();
+                                                let name = &process_params.name;
                                                 let on_error = self.target.borrow_mut().error( &MultipartParseError::SizeLimit(name.clone(), max_size ));
                                                 match on_error
                                                     {
@@ -555,7 +573,7 @@ impl <T>MultipartParser<T>
                 if let Some(ref headers ) = self.headers
                     {
                         let data: Vec<u8> = buf[from..to].to_vec();
-                        process_content.write(&headers, &data);
+                        process_content.borrow_mut().write(&headers, &data);
                     }
 
             }
@@ -577,8 +595,9 @@ impl <T>MultipartParser<T>
             {
                 if let Some(ref headers ) = self.headers
                     {
-                        process_content.flush(&headers);
+                        process_content.borrow_mut().flush(&headers);
                     }
             }
+        self.process_content = None;
     }
 }

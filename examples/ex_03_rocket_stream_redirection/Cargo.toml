@@ -1,0 +1,20 @@
+[package]
+name = "ex_03_rocket_stream_redirection"
+version = "0.0.0"
+authors = ["Gnitive", "Sphinkx <Vladimir.Chujkov@gmail.com>"]
+publish = false
+
+[dependencies]
+gnitive-multipart-derive = { path = "../../derive" }
+gnitive-multipart        = { path = "../../lib" }
+
+[dependencies.rocket]
+version = "*"
+
+[dependencies.rocket_codegen]
+version = "*"
+
+
+[dependencies.rocket_contrib]
+version = "*"
+
