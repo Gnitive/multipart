@@ -3,6 +3,7 @@
 *.rlib
 *.dll
 *.exe
+*.iml
 
 target
 .idea
